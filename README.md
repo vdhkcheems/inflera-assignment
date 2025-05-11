@@ -4,6 +4,8 @@
 
 This project implements a **Retrieval-Augmented Generation (RAG)** model for academic query answering. The system is designed to answer questions related to various research papers, including papers on **BERT**, **GPT**, and **Attention is All You Need**. It classifies queries into categories (e.g., definition, calculation, or general questions) and retrieves relevant information from the documents. Additionally, for **definition queries**, the system uses an external dictionary API to fetch concise definitions.
 
+## [Deployed link](https://vdhkcheems-inflera-assignment-app-tvz6vp.streamlit.app/)
+
 ## Features
 
 - **RAG Pipeline**: Uses the retrieval-augmented generation technique to answer research paper queries.
