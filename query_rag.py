@@ -4,6 +4,7 @@ from dotenv import load_dotenv
 import os
 from tools import get_definition
 import json
+import streamlit as st
 
 load_dotenv()
 api_key = st.secrets["GEMINI_API_KEY"]
