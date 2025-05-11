@@ -27,3 +27,16 @@ This project implements a **Retrieval-Augmented Generation (RAG)** model for aca
 6. Add your GEMINI API key to a .env file in project root, ```GEMINI_API_KEY=your_api_key_here```
 7. For CLI run ```python query_rag.py```
 8. For streamlit app run ```streamlit run app.py```
+
+
+## Streamlit app screenshots
+
+![Screenshot_20250511_123615](https://github.com/user-attachments/assets/15387003-fa1c-494e-ad73-6da5f93d62d8)
+
+![Screenshot_20250511_123416-2](https://github.com/user-attachments/assets/9096e857-7265-4784-8bcd-23682da90785)
+
+![Screenshot_20250511_123416-1](https://github.com/user-attachments/assets/2630a8de-f8b0-41c3-b66e-8a823ca48c7d)
+
+![Screenshot_20250511_123416](https://github.com/user-attachments/assets/f1d2ddc8-3008-410d-a1c7-71b7b8cddb8b)
+
+![Screenshot_20250511_123354](https://github.com/user-attachments/assets/9b6d23f5-a6ca-402e-97d4-2d7aa6698b7e)
