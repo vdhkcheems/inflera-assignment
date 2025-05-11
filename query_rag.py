@@ -6,6 +6,8 @@ from tools import get_definition
 import json
 
 load_dotenv()
+api_key = st.secrets["GEMINI_API_KEY"]
+os.environ["GEMINI_API_KEY"] = api_key  
 
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
