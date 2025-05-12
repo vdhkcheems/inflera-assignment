@@ -1,6 +1,6 @@
 import os
 import streamlit as st
-from query_rag import classify_query, rag_query
+from query_rag import classify_query_type, extract_definition_target, extract_calculation_expression, classify_query, rag_query
 from retriever import load_and_split_docs, build_faiss_index, load_faiss_index
 from langchain.embeddings import SentenceTransformerEmbeddings
 import faiss
@@ -60,7 +60,7 @@ if query:
     
     if vectordb:
         # Classify the query and get the category and target
-        category, target, program_expr = classify_query(query)
+        category, target, program_expr = classify_query(query, doc_titles=['Attention is all you need', 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding', 'Improving Language Understanding by Generative Pre-Training'])
         
         if category == "definition":
             # Handle definition queries
