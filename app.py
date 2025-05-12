@@ -73,8 +73,8 @@ if query:
             # Handle calculation queries
             try:
                 result = eval(program_expr)
-                response = f"""Calculation route.
-                The result of {program_expr} is {result}"""
+                safe_expr = program_expr.replace("*", "\\*")
+                response = f"Calculation route.\nThe result of {safe_expr} is {result}"
                 st.write(response)
             except Exception as e:
                 st.error(f"Error calculating the expression: {e}")
