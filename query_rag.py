@@ -16,57 +16,109 @@ model = genai.GenerativeModel("gemini-2.0-flash")
 
 index_filename = "faiss_index.index"
 
+doc_titles = ['Attention is all you need', 'BERT: Pre-training of Deep Bidirectional Transformers for Language Understanding', 'Improving Language Understanding by Generative Pre-Training']
 
 import json
 
-def classify_query(query):
+def classify_query_type(query: str, doc_titles: list[str]) -> str:
+    """
+    Classify a query as 'definition', 'calculation', or 'rag', considering document context.
+    """
+    title_context = ", ".join(doc_titles)
     routing_prompt = f"""
 You are a smart routing assistant.
-
-Given a user question, classify it into one of the following categories:
-1. definition — if the user wants to know the meaning of a term.
+Given a user question and the titles of available research papers, classify the question into one of these categories:
+1. definition — if the user wants the meaning of a term **not related to the research papers**.
 2. calculation — if the user wants to calculate something (math-related).
-3. rag — if the question requires searching through research papers or broader explanation.
+3. rag — if the question relates to the research papers or needs in-depth understanding.
 
-If the category is:
-- **definition**: set "target" as the term to define, and "programmatic_expression" as null.
-- **calculation**: set "target" as the natural language math query, and "programmatic_expression" as a Python-evaluable string (e.g., "4 - (1 + 1)").
-- **rag**: leave both "target" and "programmatic_expression" as null.
+Available papers:
+{title_context}
 
-Respond ONLY in JSON format:
+Respond ONLY in this JSON format:
 {{
-  "category": "...",
-  "target": "...",
-  "programmatic_expression": "..."
+  "category": "..."
 }}
 
 Question: "{query}"
 """
 
     response = model.generate_content(routing_prompt)
-    
     cleaned_response = response.text.strip('`').strip()
     if cleaned_response.startswith("json"):
         cleaned_response = cleaned_response[4:].strip()
+
     try:
         parsed = json.loads(cleaned_response)
-        try:
-            target = parsed.get("target", "").strip()
-        except:
-            target = parsed.get("target", "")
-        try:
-            prg_exp = parsed.get("programmatic_expression", "").strip()
-        except:
-            prg_exp = parsed.get("programmatic_expression", "")
+        return parsed.get("category", "rag").strip()
+    except Exception:
+        return "rag"
 
 
-        return (
-                parsed.get("category", "rag"),
-                target,
-                prg_exp
-                )
-    except Exception as e:
-        return "rag", ""
+# --- Function 2: extract_definition_target ---
+def extract_definition_target(query: str) -> str:
+    """
+    Extract the target term to be defined from a definition-type query.
+    """
+    prompt = f"""
+You are a definition extractor.
+From the following question, extract the exact term the user wants to define.
+Respond ONLY in this JSON format:
+{{
+  "target": "..."
+}}
+
+Question: "{query}"
+"""
+    response = model.generate_content(prompt)
+    cleaned_response = response.text.strip('`').strip()
+    if cleaned_response.startswith("json"):
+        cleaned_response = cleaned_response[4:].strip()
+
+    try:
+        parsed = json.loads(cleaned_response)
+        return parsed.get("target", "").strip()
+    except Exception:
+        return ""
+
+
+# --- Function 3: extract_calculation_expression ---
+def extract_calculation_expression(query: str) -> str:
+    """
+    Convert a natural language math query into a Python-evaluable expression.
+    """
+    prompt = f"""
+You are a code converter.
+Convert the following math problem into a single-line Python-evaluable expression.
+Use '**' for powers (e.g., 2^5+3^2 => 2**5+3**2), and only return valid Python.
+Respond ONLY in this JSON format:
+{{
+  "expression": "..."
+}}
+
+Question: "{query}"
+"""
+    response = model.generate_content(prompt)
+    cleaned_response = response.text.strip('`').strip()
+    if cleaned_response.startswith("json"):
+        cleaned_response = cleaned_response[4:].strip()
+
+    try:
+        parsed = json.loads(cleaned_response)
+        return parsed.get("expression", "").strip()
+    except Exception:
+        return ""
+
+
+# Optional: wrapper function if needed for legacy compatibility
+def classify_query(query: str, doc_titles: list[str]):
+    category = classify_query_type(query, doc_titles)
+    if category == "definition":
+        return category, extract_definition_target(query), None
+    elif category == "calculation":
+        return category, query, extract_calculation_expression(query)
+    else:
+        return category, None, None
 
 
 
@@ -104,7 +156,7 @@ if __name__ == "__main__":
         if query.lower() == "exit":
             break
 
-        category, target, program_expr = classify_query(query)
+        category, target, program_expr = classify_query(query, doc_titles)
         print(f"[Agent] Category: {category} | Target: {target}")
 
         if category == "definition":
@@ -115,7 +167,7 @@ if __name__ == "__main__":
             print("[Agent] Routing to Calculator")
             try:
                 result = eval(program_expr)
-                print("Result:", result)
+                print(f"{program_expr} :", result)
             except Exception as e:
                 print("Could not compute the result:", e)
 
